@@ -69,14 +69,14 @@ class W65C02S:
         return self.MEMORY[addr]
     
     def _mem_write(self, addr: hex, val: hex) -> None:
-        self.MEMORY[addr] = val & 0xFF  # Only first 8 bits are stored
+        self.MEMORY[addr] = val & 0xFF  # Only the first 8 bits are stored
     
     def _stk_pull(self) -> hex:
         self.S = (self.S + 0x01) & 0xFF  # Increment S (if >255 wrap around to 0)
-        return self._mem_read(self.STACK_ADDR + self.S)
+        return self._mem_read(self.STACK_START + self.S)
     
     def _stk_push(self, val: hex) -> None:
-        self._mem_write(self.STACK_ADDR + self.S, val)
+        self._mem_write(self.STACK_START + self.S, val)
         self.S = (self.S - 0x01) & 0xFF  # Decrement S (if <0 wrap around to 255)
 
     def _set_flags(self, *flags) -> None:
@@ -203,13 +203,19 @@ class W65C02S:
             "N" if bool(self.A) & 0x80 else "!N"  # 0x80 = 0b10000000
         )
 
-    # TODO: flags
     def dex(self) -> None:
-        self.X -= 0x01
+        self.X = (self.X - 0x01) & 0xFF
+        self._set_flags(
+            "Z" if not bool(self.X) else "!Z",
+            "N" if bool(self.X) & 0x80 else "!N"  # 0x80 = 0b10000000
+        )
 
-    # TODO: flags
     def inx(self) -> None:
-        self.X += 0x01
+        self.X = (self.X + 0x01) & 0xFF
+        self._set_flags(
+            "Z" if not bool(self.X) else "!Z",
+            "N" if bool(self.X) & 0x80 else "!N"  # 0x80 = 0b10000000
+        )
 
     def tay(self) -> None:
         self.Y = self.A
@@ -225,13 +231,19 @@ class W65C02S:
             "N" if bool(self.A) & 0x80 else "!N"  # 0x80 = 0b10000000
         )
 
-    # TODO: flags
     def dey(self) -> None:
-        self.Y -= 0x01
+        self.Y = (self.Y - 0x01) & 0xFF
+        self._set_flags(
+            "Z" if not bool(self.Y) else "!Z",
+            "N" if bool(self.Y) & 0x80 else "!N"  # 0x80 = 0b10000000
+        )
 
-    # TODO: flags
     def iny(self) -> None:
-        self.Y += 0x01
+        self.Y = (self.Y + 0x01) & 0xFF
+        self._set_flags(
+            "Z" if not bool(self.Y) else "!Z",
+            "N" if bool(self.Y) & 0x80 else "!N"  # 0x80 = 0b10000000
+        )
 
     def txs(self) -> None:
         self.S = self.X
