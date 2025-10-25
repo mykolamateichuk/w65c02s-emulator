@@ -113,7 +113,7 @@ class W65C02S:
             elif flag == "!N":
                 self.P &= ~self.P_FLAGS["NEGATIVE"]
 
-    def _proc_instruction(self, opcode: int, *args) -> None:
+    def _run_instruction(self, opcode: int, *args) -> None:
         if opcode in self.INSTRUCTION_SET["NOP"]:
             self.nop()
 
@@ -270,3 +270,85 @@ class W65C02S:
 
     def plp(self) -> None:
         self.P = self._stk_pull()
+
+
+def _draw_flags(flags: int) -> None:
+    C = int(bool(flags & 0b00000001))
+    Z = int(bool(flags & 0b00000010))
+    I = int(bool(flags & 0b00000100))
+    D = int(bool(flags & 0b00001000))
+    B = int(bool(flags & 0b00010000))
+    V = int(bool(flags & 0b01000000))
+    N = int(bool(flags & 0b10000000))
+
+    print("=============================")
+    print("| N | V | B | D | I | Z | C |")
+    print("=============================")
+    print(f"| {N} | {V} | {B} | {D} | {I} | {Z} | {C} |")
+    print("=============================")
+
+
+def _draw_registers(a: int, x: int, y: int) -> None:
+    A = f"{a:02X}"
+    X = f"{x:02X}"
+    Y = f"{y:02X}"
+
+    print("================")
+    print("| A  | X  | Y  |")
+    print("================")
+    print(f"| {A} | {X} | {Y} |")
+    print("================")
+
+
+def w65c02s_interact(proc: W65C02S) -> None:
+    def _remove_comma(_str: str) -> str:
+        comma_index = _str.find(",")
+
+        if comma_index >= 0:
+            _str = _str[0:comma_index] + _str[comma_index + 1:]
+        
+        return _str
+
+    running = True
+    while running:
+        tokens = input("> ").split()
+
+        instruction = tokens[0]
+        args = tokens[1:] if len(tokens) > 1 else []
+
+        is_opcode = False
+        try:
+            instruction = hex(instruction)
+            is_opcode = True
+        except TypeError:
+            if instruction.upper() in proc.INSTRUCTION_SET.keys():
+                is_opcode = True
+
+        if is_opcode:
+            for arg in args:
+                arg = _remove_comma(arg)
+
+            proc._run_instruction(
+                instruction if isinstance(instruction, int) 
+                else proc.INSTRUCTION_SET[instruction.upper()], 
+                *args
+            )
+            continue
+
+        if instruction == "!exit":
+            running = False
+        elif instruction == "!flag":
+            if len(args) == 0:
+                _draw_flags(proc.P)
+            # TODO: add ability to set flags with this command
+        elif instruction == "!reg":
+            if len(args) == 0:
+                _draw_registers(a=proc.A, x=proc.X, y=proc.Y)
+            # TODO: add ability to set register values with this command
+        # TODO: add memory look-up command (and maybe stack look-up)
+
+
+if __name__ == "__main__":
+    _proc = W65C02S()
+
+    w65c02s_interact(_proc)
