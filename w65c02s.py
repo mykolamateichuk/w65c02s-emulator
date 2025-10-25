@@ -165,6 +165,54 @@ class W65C02S:
         elif opcode == self.INSTRUCTION_SET["PLP"]:
             self.plp()
 
+    def _adm_a(self, low: int, high: int) -> int:
+        ...
+
+    def _adm_aii(self, low: int, high: int) -> int:
+        ...
+
+    def _adm_aix(self, low: int, high: int) -> int:
+        ...
+
+    def _adm_aiy(self, low: int, high: int) -> int:
+        ...
+
+    def _adm_ai(self, low: int, high: int) -> int:
+        ...
+
+    def _adm_aa(self) -> int:
+        ...
+
+    def _adm_ia(self, operand: int) -> int:
+        ...
+
+    def _adm_i(self) -> None:
+        ...
+
+    def _adm_pcr(self, offset: int) -> int:
+        ...
+
+    def _adm_s(self) -> int:
+        ...
+
+    def _adm_zp(self, zp: int) -> int:
+        ...
+
+    def _adm_zpii(self, zp: int) -> int:
+        ...
+
+    def _adm_zpix(self, zp: int) -> int:
+        ...
+
+    def _adm_zpiy(self, zp: int) -> int:
+        ...
+
+    def _adm_zpi(self, zp: int) -> int:
+        ...
+
+    def _adm_zpiiy(self, zp: int) -> int:
+        ...
+
     def nop(self) -> None:
         pass
 
