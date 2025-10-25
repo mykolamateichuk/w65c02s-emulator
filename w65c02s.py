@@ -340,11 +340,79 @@ def w65c02s_interact(proc: W65C02S) -> None:
         elif instruction == "!flag":
             if len(args) == 0:
                 _draw_flags(proc.P)
-            # TODO: add ability to set flags with this command
+                continue
+            
+            flags = {
+                "C": None, 
+                "Z": None,
+                "I": None,
+                "D": None,
+                "B": None,
+                "V": None,
+                "N": None
+            }
+
+            for arg in args:
+                if "C" in arg or "c" in arg:
+                    if "!" in arg:
+                        flags["C"] = False
+                    else:
+                        flags["C"] = True
+                if "Z" in arg or "z" in arg:
+                    if "!" in arg:
+                        flags["Z"] = False
+                    else:
+                        flags["Z"] = True
+                if "I" in arg or "i" in arg:
+                    if "!" in arg:
+                        flags["I"] = False
+                    else:
+                        flags["I"] = True
+                if "D" in arg or "d" in arg:
+                    if "!" in arg:
+                        flags["D"] = False
+                    else:
+                        flags["D"] = True
+                if "B" in arg or "b" in arg:
+                    if "!" in arg:
+                        flags["B"] = False
+                    else:
+                        flags["B"] = True
+                if "V" in arg or "v" in arg:
+                    if "!" in arg:
+                        flags["V"] = False
+                    else:
+                        flags["V"] = True
+                if "N" in arg or "n" in arg:
+                    if "!" in arg:
+                        flags["N"] = False
+                    else:
+                        flags["N"] = True
+            
+            proc._set_flags(
+                "C" if flags["C"] else "!C" if flags["C"] is False else None,
+                "Z" if flags["Z"] else "!Z" if flags["Z"] is False else None,
+                "I" if flags["I"] else "!I" if flags["I"] is False else None,
+                "D" if flags["D"] else "!D" if flags["D"] is False else None,
+                "B" if flags["B"] else "!B" if flags["B"] is False else None,
+                "V" if flags["V"] else "!V" if flags["V"] is False else None,
+                "N" if flags["N"] else "!N" if flags["N"] is False else None,
+            )
+                    
         elif instruction == "!reg":
             if len(args) == 0:
                 _draw_registers(a=proc.A, x=proc.X, y=proc.Y)
-            # TODO: add ability to set register values with this command
+                continue
+            
+            for arg in args:
+                reg, val = arg.split("=")
+                if reg in ["A", "a"]:
+                    proc.A = int(val, 16)
+                if reg in ["X", "x"]:
+                    proc.X = int(val, 16)
+                if reg in ["Y", "y"]:
+                    proc.Y = int(val, 16)
+        
         # TODO: add memory look-up command (and maybe stack look-up)
 
 
