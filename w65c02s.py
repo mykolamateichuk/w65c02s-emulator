@@ -318,9 +318,9 @@ def w65c02s_interact(proc: W65C02S) -> None:
 
         is_opcode = False
         try:
-            instruction = hex(instruction)
+            instruction = int(instruction, 16)
             is_opcode = True
-        except TypeError:
+        except ValueError:
             if instruction.upper() in proc.INSTRUCTION_SET.keys():
                 is_opcode = True
 
