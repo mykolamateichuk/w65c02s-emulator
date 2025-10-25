@@ -193,56 +193,56 @@ class W65C02S:
         self.X = self.A
         self._set_flags(
             "Z" if not bool(self.X) else "!Z",
-            "N" if bool(self.X) & 0x80 else "!N"  # 0x80 = 0b10000000
+            "N" if bool(self.X & 0x80) else "!N"  # 0x80 = 0b10000000
         )
 
     def txa(self) -> None:
         self.A = self.X
         self._set_flags(
             "Z" if not bool(self.A) else "!Z",
-            "N" if bool(self.A) & 0x80 else "!N"  # 0x80 = 0b10000000
+            "N" if bool(self.A & 0x80) else "!N"  # 0x80 = 0b10000000
         )
 
     def dex(self) -> None:
         self.X = (self.X - 0x01) & 0xFF
         self._set_flags(
             "Z" if not bool(self.X) else "!Z",
-            "N" if bool(self.X) & 0x80 else "!N"  # 0x80 = 0b10000000
+            "N" if bool(self.X & 0x80) else "!N"  # 0x80 = 0b10000000
         )
 
     def inx(self) -> None:
         self.X = (self.X + 0x01) & 0xFF
         self._set_flags(
             "Z" if not bool(self.X) else "!Z",
-            "N" if bool(self.X) & 0x80 else "!N"  # 0x80 = 0b10000000
+            "N" if bool(self.X & 0x80) else "!N"  # 0x80 = 0b10000000
         )
 
     def tay(self) -> None:
         self.Y = self.A
         self._set_flags(
             "Z" if not bool(self.Y) else "!Z",
-            "N" if bool(self.Y) & 0x80 else "!N"  # 0x80 = 0b10000000
+            "N" if bool(self.Y & 0x80) else "!N"  # 0x80 = 0b10000000
         )
 
     def tya(self) -> None:
         self.A = self.Y
         self._set_flags(
             "Z" if not bool(self.A) else "!Z",
-            "N" if bool(self.A) & 0x80 else "!N"  # 0x80 = 0b10000000
+            "N" if bool(self.A & 0x80) else "!N"  # 0x80 = 0b10000000
         )
 
     def dey(self) -> None:
         self.Y = (self.Y - 0x01) & 0xFF
         self._set_flags(
             "Z" if not bool(self.Y) else "!Z",
-            "N" if bool(self.Y) & 0x80 else "!N"  # 0x80 = 0b10000000
+            "N" if bool(self.Y & 0x80) else "!N"  # 0x80 = 0b10000000
         )
 
     def iny(self) -> None:
         self.Y = (self.Y + 0x01) & 0xFF
         self._set_flags(
             "Z" if not bool(self.Y) else "!Z",
-            "N" if bool(self.Y) & 0x80 else "!N"  # 0x80 = 0b10000000
+            "N" if bool(self.Y & 0x80) else "!N"  # 0x80 = 0b10000000
         )
 
     def txs(self) -> None:
@@ -252,7 +252,7 @@ class W65C02S:
         self.X = self.S
         self._set_flags(
             "Z" if not bool(self.X) else "!Z",
-            "N" if bool(self.X) & 0x80 else "!N"  # 0x80 = 0b10000000
+            "N" if bool(self.X & 0x80) else "!N"  # 0x80 = 0b10000000
         )
 
     def pha(self) -> None:
@@ -262,7 +262,7 @@ class W65C02S:
         self.A = self._stk_pull()
         self._set_flags(
             "Z" if not bool(self.A) else "!Z",
-            "N" if bool(self.A) & 0x80 else "!N"  # 0x80 = 0b10000000
+            "N" if bool(self.A & 0x80) else "!N"  # 0x80 = 0b10000000
         )
 
     def php(self) -> None:
