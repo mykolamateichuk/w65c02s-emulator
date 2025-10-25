@@ -300,7 +300,7 @@ def _draw_registers(a: int, x: int, y: int) -> None:
     print("================")
 
 
-def w65c02s_interact(proc: W65C02S) -> None:
+def w65c02s_interface(proc: W65C02S) -> None:
     def _remove_comma(_str: str) -> str:
         comma_index = _str.find(",")
 
@@ -337,6 +337,7 @@ def w65c02s_interact(proc: W65C02S) -> None:
 
         if instruction == "!exit":
             running = False
+
         elif instruction == "!flag":
             if len(args) == 0:
                 _draw_flags(proc.P)
@@ -405,6 +406,9 @@ def w65c02s_interact(proc: W65C02S) -> None:
                 continue
             
             for arg in args:
+                if "=" not in arg:
+                    continue
+
                 reg, val = arg.split("=")
                 if reg in ["A", "a"]:
                     proc.A = int(val, 16)
@@ -413,10 +417,131 @@ def w65c02s_interact(proc: W65C02S) -> None:
                 if reg in ["Y", "y"]:
                     proc.Y = int(val, 16)
         
-        # TODO: add memory look-up command (and maybe stack look-up)
+        elif instruction == "!mem":
+            if len(args) == 1:
+                try:
+                    addr = int(args[0], 16)
+                    print(f"{addr:04X}: {proc.MEMORY[addr]:02X}")
+                    continue
+                except ValueError:
+                    if "=" not in args[0]:
+                        continue
 
+                    addr, val = args[0].split("=")
+
+                    try:
+                        addr = int(addr, 16)
+                        val = int(val, 16)
+                    except ValueError:
+                        continue
+
+                    proc._mem_write(addr, val)
+                    continue
+
+            if len(args) == 2:
+                try:
+                    addr1 = int(args[0], 16)
+                    addr2 = int(args[1], 16)
+                except ValueError:
+                    continue
+
+                num_rows = (addr2 - addr1) // 16
+
+                if num_rows == 0:
+                    values = " ".join([f"{val:02X}" for val in proc.MEMORY[addr1:addr2 + 1]])
+                    print(f"{addr1:04X}-{addr2:04X}: {values}")
+                    continue
+
+                if num_rows >= 1:
+                    row_end_addr = addr1 - 1
+
+                    addr1_offset = addr1 & 0x000F
+                    if addr1_offset != 0:
+                        row_end_addr = addr1 + (0x000F - addr1_offset)
+
+                        spaces = " ".join(["  " for _ in range(addr1_offset)])
+                        values = " ".join([f"{val:02X}" for val in proc.MEMORY[addr1:row_end_addr + 1]])
+
+                        print(f"{addr1:04X}-{row_end_addr:04X}: {spaces} {values}")                
+
+                    row_start_addr = row_end_addr + 0x0001
+                    for _ in range(num_rows + 1):
+                        row_end_addr = row_start_addr + 0x000F
+
+                        values = " ".join([f"{val:02X}" for val in proc.MEMORY[row_start_addr:row_end_addr + 1]])
+                        print(f"{row_start_addr:04X}-{row_end_addr:04X}: {values}")
+
+                        row_start_addr = row_end_addr + 0x0001
+                    
+                    addr2_offset = addr2 & 0x000F
+                    if addr2_offset != 0x000F:
+                        row_start_addr = addr2 - addr2_offset
+
+                        spaces = " ".join(["  " for _ in range(0x000F - addr2_offset)])
+                        values = " ".join([f"{val:02X}" for val in proc.MEMORY[row_start_addr:addr2 + 1]])
+
+                        print(f"{row_start_addr:04X}-{addr2:04X}: {values} {spaces}")
+
+        elif instruction == "!stk":
+            STACK = proc.MEMORY[proc.STACK_START:proc.STACK_END + 1]
+
+            if len(args) == 1:
+                if args[0] == "pull":
+                    val = proc._stk_pull()
+                    print(f"{val:02X}")
+                    continue
+                if args[0] == "ptr":
+                    print(f"{proc.S:02X}")
+                    continue
+
+                try:
+                    addr = int(args[0], 16)
+                    print(f"{addr:02X}: {STACK[addr]:02X}")
+                    continue
+                except ValueError:
+                    if args[0][0] == "/":
+                        addr = int(args[0][1:], 16)
+                        print(f"{(0x0100 + addr):04X}: {proc.MEMORY[0x0100 + addr]:02X}")
+                        continue
+
+            if len(args) == 2:
+                if args[0] == "push":
+                    try:
+                        val = int(args[1], 16)
+                    except ValueError:
+                        continue
+
+                    proc._stk_push(val)
+        
+        elif instruction == "!flush":
+            allowed_fields = {
+                "A":        0x00,
+                "X":        0x00,
+                "Y":        0x00,
+                "PC":       0x0000,
+                "S":        0xFD,
+                "P":        0b00100100,
+                "MEMORY":   [0x00] * 0x10000
+            }
+
+            if len(args) == 0:
+                proc.A = 0x00
+                proc.Y = 0x00
+                proc.X = 0x00
+
+                proc.PC = 0x0000
+                proc.S = 0xFD
+                proc.P = 0b00100100
+
+                proc.MEMORY = [0x00] * 0x10000
+                continue
+            
+            for arg in args:
+                if arg.upper() in allowed_fields.keys():
+                    proc.__setattr__(arg.upper(), allowed_fields[arg.upper()])
+            
 
 if __name__ == "__main__":
     _proc = W65C02S()
 
-    w65c02s_interact(_proc)
+    w65c02s_interface(_proc)
