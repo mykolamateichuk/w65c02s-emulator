@@ -68,31 +68,31 @@ class W65C02S:
             "LDA": {
                 "IA":       0xA9,
                 "ZP":       0xA5,
-                "ZPX":      0xB5,
+                "ZPIX":     0xB5,
                 "A":        0xAD,
-                "AX":       0xBD,
-                "AY":       0xB9,
-                "IX":       0xA1,
-                "IY":       0xB1,
+                "AIX":      0xBD,
+                "AIY":      0xB9,
+                "ZPII":     0xA1,
+                "ZPIIY":    0xB1,
             },
         }
 
-        self.ADM_A_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,4}|%[01]{1,16}|[0-9]{1,5})")
-        self.ADM_AII_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{1,4}\), X|\(%[01]{1,16}\), X|\([0-9]{1,5}\), X)")
-        self.ADM_AIX_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,4}, X|%[01]{1,16}, X|[0-9]{1,5}, X)")
-        self.ADM_AIY_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,4}, Y|%[01]{1,16}, Y|[0-9]{1,5}, Y)")
-        self.ADM_AI_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{1,4}\)|\(%[01]{1,16}\)|\([0-9]{1,5}\))")
+        self.ADM_A_PATTERN = re.compile(r"(\$[0-9a-fA-F]{4}|%[01]{16}|[0-9]{5})")
+        self.ADM_AII_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{4}\), X|\(%[01]{16}\), X|\([0-9]{5}\), X)")
+        self.ADM_AIX_PATTERN = re.compile(r"(\$[0-9a-fA-F]{4}, [xX]|%[01]{16}, [xX]|[0-9]{5}, [xX])")
+        self.ADM_AIY_PATTERN = re.compile(r"(\$[0-9a-fA-F]{4}, [yY]|%[01]{16}, [yY]|[0-9]{5}, [yY])")
+        self.ADM_AI_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{4}\)|\(%[01]{16}\)|\([0-9]{5}\))")
         # self.ADM_AA_PATTERN = re.compile(r"")
-        self.ADM_IA_PATTERN = re.compile(r"#(\$[0-9a-fA-F]{1,4}|%[01]{1,16}|[0-9]{1,5})")
+        self.ADM_IA_PATTERN = re.compile(r"#(\$[0-9a-fA-F]{4}|%[01]{16}|[0-9]{5})")
         # self.ADM_I_PATTERN = re.compile(r"")
         # self.ADM_PCR_PATTERN = re.compile(r"")
         # self.ADM_S_PATTERN = re.compile(r"")
-        self.ADM_ZP_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,2}|%[01]{1,8}|[0-9]{1,3})")
-        self.ADM_ZPII_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{1,2}, X\)|\(%[01]{1,8}, X\)|\([0-9]{1,3}, X\))")
-        self.ADM_ZPIX_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,2}, X|%[01]{1,8}, X|[0-9]{1,3}, X)")
-        self.ADM_ZPIY_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,2}, Y|%[01]{1,8}, Y|[0-9]{1,3}, Y)")
-        self.ADM_ZPI_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{1,2}\)|\(%[01]{1,8}\)|\([0-9]{1,3}\))")
-        self.ADM_ZPIIY_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{1,2}\), Y|\(%[01]{1,8}\), Y|\([0-9]{1,3}\), Y)")
+        self.ADM_ZP_PATTERN = re.compile(r"(\$[0-9a-fA-F]{2}|%[01]{8}|[0-9]{3})")
+        self.ADM_ZPII_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{2}, X\)|\(%[01]{8}, X\)|\([0-9]{3}, X\))")
+        self.ADM_ZPIX_PATTERN = re.compile(r"(\$[0-9a-fA-F]{2}, [xX]|%[01]{8}, [xX]|[0-9]{3}, [xX])")
+        self.ADM_ZPIY_PATTERN = re.compile(r"(\$[0-9a-fA-F]{2}, Y|%[01]{8}, Y|[0-9]{3}, Y)")
+        self.ADM_ZPI_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{2}\)|\(%[01]{8}\)|\([0-9]{3}\))")
+        self.ADM_ZPIIY_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{2}\), Y|\(%[01]{8}\), Y|\([0-9]{3}\), Y)")
 
 
     def _mem_read(self, addr: hex) -> hex:
@@ -161,17 +161,21 @@ class W65C02S:
             except ValueError:
                 return None
 
-    def _adm_a(self, low: int, high: int) -> int:
-        ...
+    def _adm_a(self, operand: str) -> int | None:
+        return self._parse_const(operand)
 
     def _adm_aii(self, low: int, high: int) -> int:
         ...
 
-    def _adm_aix(self, low: int, high: int) -> int:
-        ...
+    def _adm_aix(self, operand: str, x: str) -> int | None:
+        if x in ["x", "X"]:
+            return self._parse_const(operand.split(",")[0])
+        return None
 
-    def _adm_aiy(self, low: int, high: int) -> int:
-        ...
+    def _adm_aiy(self, operand: str, y: str) -> int| None:
+        if y in ["y", "Y"]:
+            return self._parse_const(operand.split(",")[0])
+        return None
 
     def _adm_ai(self, low: int, high: int) -> int:
         ...
@@ -193,14 +197,16 @@ class W65C02S:
     def _adm_s(self) -> int:
         ...
 
-    def _adm_zp(self, zp: int) -> int:
-        ...
+    def _adm_zp(self, operand: str) -> int | None:
+        return self._parse_const(operand)
 
     def _adm_zpii(self, zp: int) -> int:
         ...
 
-    def _adm_zpix(self, zp: int) -> int:
-        ...
+    def _adm_zpix(self, operand: str, x: str) -> int | None:
+        if x in ["x", "X"]:
+            return self._parse_const(operand.split(",")[0])
+        return None
 
     def _adm_zpiy(self, zp: int) -> int:
         ...
@@ -267,6 +273,20 @@ class W65C02S:
         elif opcode in self.INSTRUCTION_SET["LDA"].values():
             if opcode == 0xA9:
                 self.lda_ia(args[0])
+            if opcode == 0xA5:
+                self.lda_zp(args[0])
+            if opcode == 0xB5:
+                self.lda_zpix(args[0], args[1])
+            if opcode == 0xAD:
+                self.lda_a(args[0])
+            if opcode == 0xBD:
+                self.lda_aix(args[0], args[1])
+            if opcode == 0xB9:
+                self.lda_aiy(args[0], args[1])
+            if opcode == 0xA1:
+                self.lda_zpii(args[0])
+            if opcode == 0xB1:
+                self.lda_zpiiy(args[0], args[1])
 
     def nop(self) -> None:
         pass
@@ -383,6 +403,60 @@ class W65C02S:
             "N" if bool(self.A & 0x80) else "!N"  # 0x80 = 0b10000000
         )
 
+    def lda_zp(self, operand: str) -> None:
+        zp_addr = self._adm_zp(operand)
+
+        self.A = self.MEMORY[zp_addr & 0xFF]
+        self._set_flags(
+            "Z" if not bool(self.A) else "!Z",
+            "N" if bool(self.A & 0x80) else "!N"  # 0x80 = 0b10000000
+        )
+
+    def lda_zpix(self, operand: str, x: str) -> None:
+        zp_addr = self._adm_zpix(operand, x)
+        zp_addr += self.X
+
+        self.A = self.MEMORY[zp_addr & 0xFF]
+        self._set_flags(
+            "Z" if not bool(self.A) else "!Z",
+            "N" if bool(self.A & 0x80) else "!N"  # 0x80 = 0b10000000
+        )
+
+    def lda_a(self, operand: str) -> None:
+        addr = self._adm_a(operand)
+
+        self.A = self.MEMORY[addr & 0xFFFF]
+        self._set_flags(
+            "Z" if not bool(self.A) else "!Z",
+            "N" if bool(self.A & 0x80) else "!N"  # 0x80 = 0b10000000
+        )
+
+    def lda_aix(self, operand: str, x: str) -> None:
+        addr = self._adm_aix(operand, x)
+        addr += self.X
+
+        self.A = self.MEMORY[addr & 0xFFFF]
+        self._set_flags(
+            "Z" if not bool(self.A) else "!Z",
+            "N" if bool(self.A & 0x80) else "!N"  # 0x80 = 0b10000000
+        )
+
+    def lda_aiy(self, operand: str, y: str) -> None:
+        addr = self._adm_aiy(operand, y)
+        addr += self.Y
+
+        self.A = self.MEMORY[addr & 0xFFFF]
+        self._set_flags(
+            "Z" if not bool(self.A) else "!Z",
+            "N" if bool(self.A & 0x80) else "!N"  # 0x80 = 0b10000000
+        )
+
+    def lda_zpii(self, operand: str) -> None:
+        ...
+
+    def lda_zpiiy(self, operand: str) -> None:
+        ...
+
 
 def _draw_flags(flags: int) -> None:
     C = int(bool(flags & 0b00000001))
@@ -413,14 +487,6 @@ def _draw_registers(a: int, x: int, y: int) -> None:
 
 
 def w65c02s_interface(proc: W65C02S) -> None:
-    def _remove_comma(_str: str) -> str:
-        comma_index = _str.find(",")
-
-        if comma_index >= 0:
-            _str = _str[0:comma_index] + _str[comma_index + 1:]
-        
-        return _str
-
     running = True
     while running:
         tokens = input("> ").split()
@@ -437,8 +503,12 @@ def w65c02s_interface(proc: W65C02S) -> None:
                 is_opcode = True
 
         if is_opcode:
-            for arg in args:
-                arg = _remove_comma(arg)
+            if "," in args[0]:
+                args[0] = args[0].split(",")[0]
+            if "(" in args[0]:
+                args[0] = args[0].split("(")[1]
+            if ")" in args[1]:
+                args[1] = args[1].split(")")[0]
 
             if isinstance(instruction, int):
                 proc._run_instruction(instruction, *args)
