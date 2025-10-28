@@ -1,4 +1,6 @@
 # W65C02S Microprocessor
+import re
+
 class W65C02S:
     def __init__(self) -> None:
         self.A = 0x00  # Accumulator A
@@ -61,10 +63,38 @@ class W65C02S:
             "PLA": 0x68,  # Pull Accumulator
             "PHP": 0x08,  # Push Processor status
             "PLP": 0x28,  # Pull Processor status
+
+            # LDA instruction addressing modes
+            "LDA": {
+                "IA":       0xA9,
+                "ZP":       0xA5,
+                "ZPX":      0xB5,
+                "A":        0xAD,
+                "AX":       0xBD,
+                "AY":       0xB9,
+                "IX":       0xA1,
+                "IY":       0xB1,
+            },
         }
 
-        self.RUNNING = True
-    
+        self.ADM_A_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,4}|%[01]{1,16}|[0-9]{1,5})")
+        self.ADM_AII_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{1,4}\), X|\(%[01]{1,16}\), X|\([0-9]{1,5}\), X)")
+        self.ADM_AIX_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,4}, X|%[01]{1,16}, X|[0-9]{1,5}, X)")
+        self.ADM_AIY_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,4}, Y|%[01]{1,16}, Y|[0-9]{1,5}, Y)")
+        self.ADM_AI_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{1,4}\)|\(%[01]{1,16}\)|\([0-9]{1,5}\))")
+        # self.ADM_AA_PATTERN = re.compile(r"")
+        self.ADM_IA_PATTERN = re.compile(r"#(\$[0-9a-fA-F]{1,4}|%[01]{1,16}|[0-9]{1,5})")
+        # self.ADM_I_PATTERN = re.compile(r"")
+        # self.ADM_PCR_PATTERN = re.compile(r"")
+        # self.ADM_S_PATTERN = re.compile(r"")
+        self.ADM_ZP_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,2}|%[01]{1,8}|[0-9]{1,3})")
+        self.ADM_ZPII_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{1,2}, X\)|\(%[01]{1,8}, X\)|\([0-9]{1,3}, X\))")
+        self.ADM_ZPIX_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,2}, X|%[01]{1,8}, X|[0-9]{1,3}, X)")
+        self.ADM_ZPIY_PATTERN = re.compile(r"(\$[0-9a-fA-F]{1,2}, Y|%[01]{1,8}, Y|[0-9]{1,3}, Y)")
+        self.ADM_ZPI_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{1,2}\)|\(%[01]{1,8}\)|\([0-9]{1,3}\))")
+        self.ADM_ZPIIY_PATTERN = re.compile(r"(\(\$[0-9a-fA-F]{1,2}\), Y|\(%[01]{1,8}\), Y|\([0-9]{1,3}\), Y)")
+
+
     def _mem_read(self, addr: hex) -> hex:
         return self.MEMORY[addr]
     
@@ -112,6 +142,74 @@ class W65C02S:
                 self.P &= ~self.P_FLAGS["OVERFLOW"]
             elif flag == "!N":
                 self.P &= ~self.P_FLAGS["NEGATIVE"]
+
+    @staticmethod
+    def _parse_const(const: str) -> int | None:
+        if const.startswith("$"):
+            try:
+                return int(const[1:], 16)
+            except ValueError:
+                return None
+        elif const.startswith("%"):
+            try:
+                return int(const[1:], 2)
+            except ValueError:
+                return None
+        else:
+            try:
+                return int(const)
+            except ValueError:
+                return None
+
+    def _adm_a(self, low: int, high: int) -> int:
+        ...
+
+    def _adm_aii(self, low: int, high: int) -> int:
+        ...
+
+    def _adm_aix(self, low: int, high: int) -> int:
+        ...
+
+    def _adm_aiy(self, low: int, high: int) -> int:
+        ...
+
+    def _adm_ai(self, low: int, high: int) -> int:
+        ...
+
+    def _adm_aa(self) -> int:
+        ...
+
+    def _adm_ia(self, operand: str) -> int | None:
+        if operand.startswith("#"):
+            return self._parse_const(operand[1:])
+        return None
+
+    def _adm_i(self) -> None:
+        ...
+
+    def _adm_pcr(self, offset: int) -> int:
+        ...
+
+    def _adm_s(self) -> int:
+        ...
+
+    def _adm_zp(self, zp: int) -> int:
+        ...
+
+    def _adm_zpii(self, zp: int) -> int:
+        ...
+
+    def _adm_zpix(self, zp: int) -> int:
+        ...
+
+    def _adm_zpiy(self, zp: int) -> int:
+        ...
+
+    def _adm_zpi(self, zp: int) -> int:
+        ...
+
+    def _adm_zpiiy(self, zp: int) -> int:
+        ...
 
     def _run_instruction(self, opcode: int, *args) -> None:
         if opcode in self.INSTRUCTION_SET["NOP"]:
@@ -165,53 +263,10 @@ class W65C02S:
         elif opcode == self.INSTRUCTION_SET["PLP"]:
             self.plp()
 
-    def _adm_a(self, low: int, high: int) -> int:
-        ...
-
-    def _adm_aii(self, low: int, high: int) -> int:
-        ...
-
-    def _adm_aix(self, low: int, high: int) -> int:
-        ...
-
-    def _adm_aiy(self, low: int, high: int) -> int:
-        ...
-
-    def _adm_ai(self, low: int, high: int) -> int:
-        ...
-
-    def _adm_aa(self) -> int:
-        ...
-
-    def _adm_ia(self, operand: int) -> int:
-        ...
-
-    def _adm_i(self) -> None:
-        ...
-
-    def _adm_pcr(self, offset: int) -> int:
-        ...
-
-    def _adm_s(self) -> int:
-        ...
-
-    def _adm_zp(self, zp: int) -> int:
-        ...
-
-    def _adm_zpii(self, zp: int) -> int:
-        ...
-
-    def _adm_zpix(self, zp: int) -> int:
-        ...
-
-    def _adm_zpiy(self, zp: int) -> int:
-        ...
-
-    def _adm_zpi(self, zp: int) -> int:
-        ...
-
-    def _adm_zpiiy(self, zp: int) -> int:
-        ...
+        # LDA
+        elif opcode in self.INSTRUCTION_SET["LDA"].values():
+            if opcode == 0xA9:
+                self.lda_ia(args[0])
 
     def nop(self) -> None:
         pass
@@ -319,6 +374,15 @@ class W65C02S:
     def plp(self) -> None:
         self.P = self._stk_pull()
 
+    def lda_ia(self, operand: str) -> None:
+        operand_hex = self._adm_ia(operand)
+
+        self.A = operand_hex & 0xFF
+        self._set_flags(
+            "Z" if not bool(self.A) else "!Z",
+            "N" if bool(self.A & 0x80) else "!N"  # 0x80 = 0b10000000
+        )
+
 
 def _draw_flags(flags: int) -> None:
     C = int(bool(flags & 0b00000001))
@@ -376,12 +440,97 @@ def w65c02s_interface(proc: W65C02S) -> None:
             for arg in args:
                 arg = _remove_comma(arg)
 
-            proc._run_instruction(
-                instruction if isinstance(instruction, int) 
-                else proc.INSTRUCTION_SET[instruction.upper()], 
-                *args
-            )
-            continue
+            if isinstance(instruction, int):
+                proc._run_instruction(instruction, *args)
+                continue
+
+            if len(args) == 1:
+                if re.match(proc.ADM_A_PATTERN, args[0]):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("A")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
+                if re.match(proc.ADM_AI_PATTERN, args[0]):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("AI")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
+                if re.match(proc.ADM_IA_PATTERN, args[0]):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("IA")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
+                if re.match(proc.ADM_ZP_PATTERN, args[0]):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("ZP")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
+                if re.match(proc.ADM_ZPI_PATTERN, args[0]):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("ZPI")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
+
+            if len(args) == 2:
+                if re.match(proc.ADM_AII_PATTERN, ", ".join(args)):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("AII")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
+                if re.match(proc.ADM_AIX_PATTERN, ", ".join(args)):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("AIX")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
+                if re.match(proc.ADM_AIY_PATTERN, ", ".join(args)):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("AIY")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
+                if re.match(proc.ADM_ZPII_PATTERN, ", ".join(args)):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("ZPII")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
+                if re.match(proc.ADM_ZPIX_PATTERN, ", ".join(args)):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("ZPIX")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
+                if re.match(proc.ADM_ZPIY_PATTERN, ", ".join(args)):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("ZPIY")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
+                if re.match(proc.ADM_ZPIIY_PATTERN, ", ".join(args)):
+                    opcode = proc.INSTRUCTION_SET[instruction.upper()].get("ZPIIY")
+                    if not opcode:
+                        continue
+
+                    proc._run_instruction(opcode, *args)
+                    continue
 
         if instruction == "!exit":
             running = False
