@@ -109,7 +109,7 @@ class W65C02S:
         self._mem_write(self.STACK_START + self.S, val)
         self.S = (self.S - 0x01) & 0xFF  # Decrement S (if <0 wrap around to 255)
 
-    def _set_flags(self, *flags) -> None:
+    def set_flags(self, *flags) -> None:
         for flag in flags:
             # SET FLAGS
             if flag == "C":

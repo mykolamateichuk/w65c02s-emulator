@@ -5,6 +5,8 @@ PATTERN = None
 def handle_instruction(instruction: str, *operands) -> tuple[bool, tuple | None]:
     impl_instructions = (
         "NOP",
+        "CLC", "SEC", "CLI", "SEI", "CLV", "CLD", "SED",
+
     )
 
     if instruction.upper() in impl_instructions and len(operands) == 0:
