@@ -1,9 +1,9 @@
-INSTRUCTION = "CLC"
+INSTRUCTION = "TXS"
 
-ADM_I = 0x18
+ADM_I = 0x9A
 
 def i(proc) -> None:
-    proc.set_flags("!C")
+    proc.S = proc.X
 
 def execute_adm(adm: str, proc = None, operand: int = None) -> None:
     if adm == "I":

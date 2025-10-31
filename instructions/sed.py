@@ -5,7 +5,7 @@ ADM_I = 0xF8
 def i(proc) -> None:
     proc.set_flags("D")
 
-def execute_adm(adm: str, proc) -> None:
+def execute_adm(adm: str, proc, operand: int = None) -> None:
     if adm == "I":
         i(proc)
 

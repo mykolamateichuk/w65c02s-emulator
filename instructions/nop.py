@@ -13,7 +13,7 @@ ADM_I = (0x02, 0x03, 0x0B, 0x13, 0x1B,
 def i() -> None:
     pass
 
-def execute_adm(adm: str, proc = None) -> None:
+def execute_adm(adm: str, proc = None, operand: int = None) -> None:
     if adm == "I":
         i()
 
