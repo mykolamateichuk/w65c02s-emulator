@@ -3,10 +3,10 @@
 ### Architecture and instruction set
 
 #### Registers
-[![registers](imgs/registers.png)]()
+[![registers](_imgs/registers.png)]()
 
 #### Addressing modes
-![addr_modes](imgs/addr_modes.png)
+![addr_modes](_imgs/addr_modes.png)
 
 #### Instruction set
-![instr_set](imgs/instr_set.png)
+![instr_set](_imgs/instr_set.png)
