@@ -67,11 +67,13 @@ def w65c02s_interface(proc: W65C02S) -> None:
                     args[0] = args[0].split("(")[1]
                 if ")" in args[0]:
                     args[0] = args[0].split(")")[0]
-                if ")" in args[1]:
-                    args[1] = args[1].split(")")[0]
+                if len(args) == 2:
+                    if ")" in args[1]:
+                        args[1] = args[1].split(")")[0]
 
                 args[0] = args[0].strip()
-                args[1] = args[1].strip()
+                if len(args) == 2:
+                    args[1] = args[1].strip()
 
             if isinstance(instruction, int):
                 if instruction in proc.OPCODES:

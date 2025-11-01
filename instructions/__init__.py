@@ -24,11 +24,15 @@ from instructions.pla import *
 from instructions.php import *
 from instructions.plp import *
 
+from instructions.lda import *
+from instructions.ldx import *
+from instructions.ldy import *
+
 
 __all__ = [
     "nop",
     "clc", "sec", "cli", "sei", "clv", "cld", "sed",
     "txa", "tax", "tya", "tay", "inx", "iny", "dex", "dey",
     "txs", "tsx", "pha", "plp", "php", "plp",
-
+    "lda", "ldx", "ldy",
 ]

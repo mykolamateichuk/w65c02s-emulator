@@ -87,17 +87,17 @@ def execute_adm(adm: str, proc = None, operand: int = None) -> None:
     if adm == "ZP":
         zp(proc, operand)
     if adm == "ZPIX":
-        ...
+        zpix(proc, operand)
     if adm == "A":
-        ...
+        a(proc, operand)
     if adm == "AIX":
-        ...
+        aix(proc, operand)
     if adm == "AIY":
-        ...
+        aiy(proc, operand)
     if adm == "ZPII":
-        ...
+        zpii(proc, operand)
     if adm == "ZPIIY":
-        ...
+        zpiiy(proc, operand)
 
 def execute_opcode() -> None:
     pass
