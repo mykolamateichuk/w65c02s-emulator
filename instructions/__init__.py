@@ -27,6 +27,9 @@ from instructions.plp import *
 from instructions.lda import *
 from instructions.ldx import *
 from instructions.ldy import *
+from instructions.sta import *
+from instructions.stx import *
+from instructions.sty import *
 
 
 __all__ = [
@@ -34,5 +37,6 @@ __all__ = [
     "clc", "sec", "cli", "sei", "clv", "cld", "sed",
     "txa", "tax", "tya", "tay", "inx", "iny", "dex", "dey",
     "txs", "tsx", "pha", "plp", "php", "plp",
-    "lda", "ldx", "ldy",
+    "lda", "ldx", "ldy", "sta", "stx", "sty",
+
 ]
