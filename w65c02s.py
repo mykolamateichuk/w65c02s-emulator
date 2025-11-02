@@ -73,6 +73,7 @@ class W65C02S:
             # ARITHMETIC INSTRUCTIONS
             "INC": (0xE6, 0xF6, 0xEE, 0xFE),
             "DEC": (0xC6, 0xD6, 0xCE, 0xDE),
+            "ADC": (0x69, 0x65, 0x75, 0x6D, 0x7D, 0x79, 0x61, 0x71),
 
         }
 
@@ -84,11 +85,19 @@ class W65C02S:
             else:
                 self.OPCODES[opcodes] = instruction
 
+    def unsigned_byte(self, val: hex) -> hex:
+        return val & ((1 << 8) - 1)  # Convert to 2's complement and wrap-around if needed
+
+    def signed_byte(self, val: hex) -> hex:
+        if val & (1 << 7):  # Check if wrapped unsigned
+            return val - (1 << 8)
+        return val
+
     def mem_read(self, addr: hex) -> hex:
         return self.MEMORY[addr]
     
     def mem_write(self, addr: hex, val: hex) -> None:
-        self.MEMORY[addr] = val & 0xFF  # Only the first 8 bits are stored
+        self.MEMORY[addr] = self.unsigned_byte(val)
     
     def stk_pull(self) -> hex:
         self.S = (self.S + 0x01) & 0xFF  # Increment S (if >255 wrap around to 0)

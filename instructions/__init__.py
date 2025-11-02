@@ -33,6 +33,7 @@ from instructions.sty import *
 
 from instructions.inc import *
 from instructions.dec import *
+from instructions.adc import *
 
 
 __all__ = [
@@ -41,5 +42,5 @@ __all__ = [
     "txa", "tax", "tya", "tay", "inx", "iny", "dex", "dey",
     "txs", "tsx", "pha", "plp", "php", "plp",
     "lda", "ldx", "ldy", "sta", "stx", "sty",
-    "inc", "dec",
+    "inc", "dec", "adc", 
 ]

@@ -7,37 +7,39 @@ ADM_AIX     = 0xDE
 
 
 def zp(proc, zp_addr: int) -> None:
-    proc.MEMORY[zp_addr & 0xFF] -= 1
+    zp_addr = zp_addr & 0xFF
+    proc.mem_write(zp_addr, proc.mem_read(zp_addr) - 1)
 
     proc.set_flags(
-        "Z" if not bool(proc.MEMORY[zp_addr & 0xFF]) else "!Z",
-        "N" if bool(proc.MEMORY[zp_addr & 0xFF] & 0b10000000) else "!N"
+        "Z" if not bool(proc.mem_read(zp_addr)) else "!Z",
+        "N" if bool(proc.mem_read(zp_addr) & 0b10000000) else "!N"
     )
 
 def zpix(proc, zp_addr: int) -> None:
     eff_addr = (zp_addr + proc.X) & 0xFF
-    proc.MEMORY[eff_addr] -= 1
+    proc.mem_write(eff_addr, proc.mem_read(eff_addr) - 1)
 
     proc.set_flags(
-        "Z" if not bool(proc.MEMORY[eff_addr]) else "!Z",
-        "N" if bool(proc.MEMORY[eff_addr] & 0b10000000) else "!N"
+        "Z" if not bool(proc.mem_read(eff_addr)) else "!Z",
+        "N" if bool(proc.mem_read(eff_addr) & 0b10000000) else "!N"
     )
 
 def a(proc, addr: int) -> None:
-    proc.MEMORY[addr & 0xFFFF] -= 1
+    addr = addr & 0xFFFF
+    proc.mem_write(addr, proc.mem_read(addr) - 1)
 
     proc.set_flags(
-        "Z" if not bool(proc.MEMORY[addr & 0xFFFF]) else "!Z",
-        "N" if bool(proc.MEMORY[addr & 0xFFFF] & 0b10000000) else "!N"
+        "Z" if not bool(proc.mem_read(addr)) else "!Z",
+        "N" if bool(proc.mem_read(addr) & 0b10000000) else "!N"
     )
 
 def aix(proc, addr: int) -> None:
     eff_addr = (addr + proc.X) & 0xFFFF
-    proc.MEMORY[eff_addr] -= 1
+    proc.mem_write(eff_addr, proc.mem_read(eff_addr) - 1)
 
     proc.set_flags(
-        "Z" if not bool(proc.MEMORY[eff_addr]) else "!Z",
-        "N" if bool(proc.MEMORY[eff_addr] & 0b10000000) else "!N"
+        "Z" if not bool(proc.mem_read(eff_addr)) else "!Z",
+        "N" if bool(proc.mem_read(eff_addr) & 0b10000000) else "!N"
     )
 
 
