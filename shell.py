@@ -52,7 +52,10 @@ def w65c02s_interface(proc: W65C02S) -> None:
 
         is_opcode = False
         try:
-            instruction = int(instruction, 16)
+            opcode = int(instruction, 16)
+            if opcode <= 0xFF:
+                instruction = opcode
+
             is_opcode = True
         except ValueError:
             if instruction.upper() in proc.INSTRUCTION_SET.keys():
