@@ -84,6 +84,9 @@ def w65c02s_interface(proc: W65C02S) -> None:
                     getattr(instr, proc.OPCODES[instruction].lower()).execute_opcode(proc, *args)
                 continue
 
+            if "_" in instruction:
+                instruction = instruction[:len(instruction) - 2]
+
             adm, operand = handle_adm(is_indirect, instruction, *args)
             getattr(instr, instruction.lower()).execute_adm(
                 adm=adm, proc=proc, operand=operand
