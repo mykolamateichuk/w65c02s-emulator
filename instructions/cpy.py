@@ -15,7 +15,7 @@ def ia(proc, value: int) -> None:
     proc.set_flags(
         "C" if carry else "!C",
         "Z" if zero else "!Z",
-        "N" if bool(proc.A & 0b10000000) else "!N"
+        "N" if bool(proc.Y & 0b10000000) else "!N"
     )
 
 
@@ -31,7 +31,7 @@ def zp(proc, zp_addr: int) -> None:
     proc.set_flags(
         "C" if carry else "!C",
         "Z" if zero else "!Z",
-        "N" if bool(proc.A & 0b10000000) else "!N"
+        "N" if bool(proc.Y & 0b10000000) else "!N"
     )
 
 
@@ -47,7 +47,7 @@ def a(proc, addr: int) -> None:
     proc.set_flags(
         "C" if carry else "!C",
         "Z" if zero else "!Z",
-        "N" if bool(proc.A & 0b10000000) else "!N"
+        "N" if bool(proc.Y & 0b10000000) else "!N"
     )
 
 

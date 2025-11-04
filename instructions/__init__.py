@@ -44,6 +44,9 @@ from instructions.cmp import *
 from instructions.cpx import *
 from instructions.cpy import *
 
+from instructions.asl import *
+from instructions.lsr import *
+
 
 __all__ = [
     "nop",
@@ -52,5 +55,5 @@ __all__ = [
     "txs", "tsx", "pha", "plp", "php", "plp",
     "lda", "ldx", "ldy", "sta", "stx", "sty",
     "inc", "dec", "adc", "sbc", "and_", "ora", "eor", "cmp", "cpx", "cpy",
-
+    "asl", "lsr", 
 ]

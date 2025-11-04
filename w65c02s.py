@@ -70,7 +70,7 @@ class W65C02S:
             "STX": (0x86, 0x96, 0x8E),
             "STY": (0x84, 0x94, 0x8C),
 
-            # ARITHMETIC AND LOGIC INSTRUCTIONS
+            # Arithmetic and logic instructions
             "INC": (0xE6, 0xF6, 0xEE, 0xFE),
             "DEC": (0xC6, 0xD6, 0xCE, 0xDE),
             "ADC": (0x69, 0x65, 0x75, 0x6D, 0x7D, 0x79, 0x61, 0x71),
@@ -82,6 +82,10 @@ class W65C02S:
             "CPX": (0xE0, 0xE4, 0xEC),
             "CPY": (0xC0, 0xC4, 0xCC),
 
+            # Shift and rotate instructions
+            "ASL": (0x0A, 0x06, 0x16, 0x0E, 0x1E),
+            "LSR": (0x4A, 0x46, 0x56, 0x4E, 0x5E),
+            
         }
 
         self.OPCODES = {}
@@ -92,10 +96,12 @@ class W65C02S:
             else:
                 self.OPCODES[opcodes] = instruction
 
-    def unsigned_byte(self, val: hex) -> hex:
+    @staticmethod
+    def unsigned_byte(val: hex) -> hex:
         return val & ((1 << 8) - 1)  # Convert to 2's complement and wrap-around if needed
 
-    def signed_byte(self, val: hex) -> hex:
+    @staticmethod
+    def signed_byte(val: hex) -> hex:
         if val & (1 << 7):  # Check if wrapped unsigned
             return val - (1 << 8)
         return val
