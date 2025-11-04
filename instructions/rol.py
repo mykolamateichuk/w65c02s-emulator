@@ -1,15 +1,16 @@
-INSTRUCTION = "ASL"
+INSTRUCTION = "ROL"
 
-ADM_AA      = 0x0A
-ADM_ZP      = 0x06
-ADM_ZPIX    = 0x16
-ADM_A       = 0x0E
-ADM_AIX     = 0x1E
+ADM_AA      = 0x2A
+ADM_ZP      = 0x26
+ADM_ZPIX    = 0x36
+ADM_A       = 0x2E
+ADM_AIX     = 0x3E
 
 
 def aa(proc) -> None:
     carry = (proc.A >> 7) & 1
     proc.A = (proc.A << 1) & 0xFF
+    proc.A |= proc.P & 0b00000001
 
     proc.set_flags(
         "C" if carry else "!C",
@@ -23,6 +24,7 @@ def zp(proc, zp_addr: int) -> None:
 
     carry = (mem_val >> 7) & 1
     mem_val = (mem_val << 1) & 0xFF
+    mem_val |= proc.P & 0b00000001
 
     proc.mem_write(zp_addr & 0xFF, mem_val)
 
@@ -38,6 +40,7 @@ def zpix(proc, zp_addr: int) -> None:
 
     carry = (mem_val >> 7) & 1
     mem_val = (mem_val << 1) & 0xFF
+    mem_val |= proc.P & 0b00000001
 
     proc.mem_write((zp_addr + proc.X) & 0xFF, mem_val)
 
@@ -53,6 +56,7 @@ def a(proc, addr: int) -> None:
 
     carry = (mem_val >> 7) & 1
     mem_val = (mem_val << 1) & 0xFF
+    mem_val |= proc.P & 0b00000001
 
     proc.mem_write(addr & 0xFFFF, mem_val)
 
@@ -68,6 +72,7 @@ def aix(proc, addr: int) -> None:
 
     carry = (mem_val >> 7) & 1
     mem_val = (mem_val << 1) & 0xFF
+    mem_val |= proc.P & 0b00000001
 
     proc.mem_write((addr + proc.X) & 0xFFFF, mem_val)
 
