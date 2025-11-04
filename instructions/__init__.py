@@ -40,6 +40,9 @@ from instructions.sbc import *
 and_ = importlib.import_module("instructions.and")  # Python 'and' keyword ruined the fun...
 from instructions.ora import *
 from instructions.eor import *
+from instructions.cmp import *
+from instructions.cpx import *
+from instructions.cpy import *
 
 
 __all__ = [
@@ -48,5 +51,6 @@ __all__ = [
     "txa", "tax", "tya", "tay", "inx", "iny", "dex", "dey",
     "txs", "tsx", "pha", "plp", "php", "plp",
     "lda", "ldx", "ldy", "sta", "stx", "sty",
-    "inc", "dec", "adc", "sbc", "and_", "ora", "eor",
+    "inc", "dec", "adc", "sbc", "and_", "ora", "eor", "cmp", "cpx", "cpy",
+
 ]
