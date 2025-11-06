@@ -31,6 +31,44 @@ def draw_registers(a: int, x: int, y: int) -> None:
     print("================")
 
 
+def print_memory(proc: W65C02S, addr1: int, addr2: int) -> None:
+    num_rows = (addr2 - addr1) // 16
+
+    if num_rows == 0:
+        values = " ".join([f"{val:02X}" for val in proc.MEMORY[addr1:addr2 + 1]])
+        print(f"{addr1:04X}-{addr2:04X}: {values}")
+
+    if num_rows >= 1:
+        row_end_addr = addr1 - 1
+
+        addr1_offset = addr1 & 0x000F
+        if addr1_offset != 0:
+            row_end_addr = addr1 + (0x000F - addr1_offset)
+
+            spaces = " ".join(["  " for _ in range(addr1_offset)])
+            values = " ".join([f"{val:02X}" for val in proc.MEMORY[addr1:row_end_addr + 1]])
+
+            print(f"{addr1:04X}-{row_end_addr:04X}: {spaces} {values}")
+
+        row_start_addr = row_end_addr + 0x0001
+        for _ in range(num_rows + 1):
+            row_end_addr = row_start_addr + 0x000F
+
+            values = " ".join([f"{val:02X}" for val in proc.MEMORY[row_start_addr:row_end_addr + 1]])
+            print(f"{row_start_addr:04X}-{row_end_addr:04X}: {values}")
+
+            row_start_addr = row_end_addr + 0x0001
+
+        addr2_offset = addr2 & 0x000F
+        if addr2_offset != 0x000F:
+            row_start_addr = addr2 - addr2_offset
+
+            spaces = " ".join(["  " for _ in range(0x000F - addr2_offset)])
+            values = " ".join([f"{val:02X}" for val in proc.MEMORY[row_start_addr:addr2 + 1]])
+
+            print(f"{row_start_addr:04X}-{addr2:04X}: {values} {spaces}")
+
+
 def w65c02s_interface(proc: W65C02S) -> None:
     running = True
     while running:
@@ -202,42 +240,7 @@ def w65c02s_interface(proc: W65C02S) -> None:
                 except ValueError:
                     continue
 
-                num_rows = (addr2 - addr1) // 16
-
-                if num_rows == 0:
-                    values = " ".join([f"{val:02X}" for val in proc.MEMORY[addr1:addr2 + 1]])
-                    print(f"{addr1:04X}-{addr2:04X}: {values}")
-                    continue
-
-                if num_rows >= 1:
-                    row_end_addr = addr1 - 1
-
-                    addr1_offset = addr1 & 0x000F
-                    if addr1_offset != 0:
-                        row_end_addr = addr1 + (0x000F - addr1_offset)
-
-                        spaces = " ".join(["  " for _ in range(addr1_offset)])
-                        values = " ".join([f"{val:02X}" for val in proc.MEMORY[addr1:row_end_addr + 1]])
-
-                        print(f"{addr1:04X}-{row_end_addr:04X}: {spaces} {values}")
-
-                    row_start_addr = row_end_addr + 0x0001
-                    for _ in range(num_rows + 1):
-                        row_end_addr = row_start_addr + 0x000F
-
-                        values = " ".join([f"{val:02X}" for val in proc.MEMORY[row_start_addr:row_end_addr + 1]])
-                        print(f"{row_start_addr:04X}-{row_end_addr:04X}: {values}")
-
-                        row_start_addr = row_end_addr + 0x0001
-
-                    addr2_offset = addr2 & 0x000F
-                    if addr2_offset != 0x000F:
-                        row_start_addr = addr2 - addr2_offset
-
-                        spaces = " ".join(["  " for _ in range(0x000F - addr2_offset)])
-                        values = " ".join([f"{val:02X}" for val in proc.MEMORY[row_start_addr:addr2 + 1]])
-
-                        print(f"{row_start_addr:04X}-{addr2:04X}: {values} {spaces}")
+                print_memory(proc, addr1, addr2)
 
         elif instruction == "!stk":
             STACK = proc.MEMORY[proc.STACK_START:proc.STACK_END + 1]

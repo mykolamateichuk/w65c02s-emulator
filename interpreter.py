@@ -1,26 +1,49 @@
 import argparse
 
+import re
+
 from w65c02s import W65C02S
 from addr_modes.handler import handle_adm
 import instructions as instr
 
-from cli import draw_flags, draw_registers
+from cli import draw_flags, draw_registers, print_memory
 
 
-def preprocess(lines: list) -> list:
-    for ind, line in enumerate(lines):
-        # Remove empty lines
-        if line.strip() == "":
-            del lines[ind]
-        
-        # Remove comments
+def preprocess(lines: list) -> tuple[list, dict]:
+    labels = {}
+
+    # Strip lines of any whitespace
+    for i, line in enumerate(lines):
+        lines[i] = line.strip()
+
+    # Remove comments
+    for i, line in enumerate(lines):
         if ";" in line:
-            lines[ind] = line[:line.find(";")]
-        
-    return lines
+            if line.find(";") == 0:
+                lines[i] = ""
+            lines[i] = line[:line.find(";")]
+
+    # Remove empty lines
+    empty_lines = lines.count("")
+    for i in range(0, empty_lines):
+        lines.remove("")
+
+    # Parse and remove labels
+    for i, line in enumerate(lines):
+        if re.match(re.compile(r"[a-zA-Z][a-zA-Z0-9]*:"), line):
+            lines[i] = line[:line.find(":")].strip()
+            labels[lines[i]] = i
+            lines[i] = ""
+
+    # Remove empty lines after removing labels
+    empty_lines = lines.count("")
+    for i in range(0, empty_lines):
+        lines.remove("")
+
+    return lines, labels
 
 
-def interpret(proc: W65C02S, lines: list) -> None:
+def interpret(proc: W65C02S, lines: list, labels: dict) -> None:
     for line in lines:
         tokens = line.split(maxsplit=1)
 
@@ -81,6 +104,10 @@ def interpret(proc: W65C02S, lines: list) -> None:
             )
 
         elif instruction == "!flag":
+            if len(args) == 0:
+                draw_flags(proc.P)
+                continue
+
             flags = {
                 "C": None,
                 "Z": None,
@@ -139,6 +166,10 @@ def interpret(proc: W65C02S, lines: list) -> None:
             )
 
         elif instruction == "!reg":
+            if len(args) == 0:
+                draw_registers(a=proc.A, x=proc.X, y=proc.Y)
+                continue
+
             for arg in args:
                 if "=" not in arg:
                     continue
@@ -179,42 +210,7 @@ def interpret(proc: W65C02S, lines: list) -> None:
                 except ValueError:
                     continue
 
-                num_rows = (addr2 - addr1) // 16
-
-                if num_rows == 0:
-                    values = " ".join([f"{val:02X}" for val in proc.MEMORY[addr1:addr2 + 1]])
-                    print(f"{addr1:04X}-{addr2:04X}: {values}")
-                    continue
-
-                if num_rows >= 1:
-                    row_end_addr = addr1 - 1
-
-                    addr1_offset = addr1 & 0x000F
-                    if addr1_offset != 0:
-                        row_end_addr = addr1 + (0x000F - addr1_offset)
-
-                        spaces = " ".join(["  " for _ in range(addr1_offset)])
-                        values = " ".join([f"{val:02X}" for val in proc.MEMORY[addr1:row_end_addr + 1]])
-
-                        print(f"{addr1:04X}-{row_end_addr:04X}: {spaces} {values}")
-
-                    row_start_addr = row_end_addr + 0x0001
-                    for _ in range(num_rows + 1):
-                        row_end_addr = row_start_addr + 0x000F
-
-                        values = " ".join([f"{val:02X}" for val in proc.MEMORY[row_start_addr:row_end_addr + 1]])
-                        print(f"{row_start_addr:04X}-{row_end_addr:04X}: {values}")
-
-                        row_start_addr = row_end_addr + 0x0001
-
-                    addr2_offset = addr2 & 0x000F
-                    if addr2_offset != 0x000F:
-                        row_start_addr = addr2 - addr2_offset
-
-                        spaces = " ".join(["  " for _ in range(0x000F - addr2_offset)])
-                        values = " ".join([f"{val:02X}" for val in proc.MEMORY[row_start_addr:addr2 + 1]])
-
-                        print(f"{row_start_addr:04X}-{addr2:04X}: {values} {spaces}")
+                print_memory(proc, addr1, addr2)
 
         elif instruction == "!stk":
             STACK = proc.MEMORY[proc.STACK_START:proc.STACK_END + 1]
@@ -258,17 +254,14 @@ if __name__ == "__main__":
         required=True
     )
 
-    args = parser.parse_args()
+    _args = parser.parse_args()
 
     _proc = W65C02S()
 
     # TODO: add reading from binary file
 
-    with open(args.file_path, "r") as file:
-        preproc_lines = preprocess(file.readlines())
-        interpret(_proc, preproc_lines)
-    
-    draw_flags(_proc.P)
-    draw_registers(a=_proc.A, x=_proc.X, y=_proc.Y)
+    with open(_args.file_path, "r") as file:
+        _lines, _labels = preprocess(file.readlines())
+        interpret(_proc, _lines, _labels)
 
     # TODO: how to display memory changes?
