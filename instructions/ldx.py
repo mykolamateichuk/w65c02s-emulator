@@ -62,5 +62,25 @@ def execute_adm(adm: str, proc = None, operand: int = None) -> None:
     if adm == "AIY":
         aiy(proc, operand)
 
-def execute_opcode() -> None:
-    pass
+def execute_opcode(proc, opcode: int, *args) -> None:
+    if opcode == ADM_IA:
+        ia(proc, args[0])
+    if opcode == ADM_ZP:
+        zp(proc, args[0])
+    if opcode == ADM_ZPIY:
+        zpiy(proc, args[0])
+    if opcode == ADM_A:
+        a(proc, (args[1] << 8) + args[0])
+    if opcode == ADM_AIY:
+        aiy(proc, (args[1] << 8) + args[0])
+
+def get_opcode_bytes(opcode: int) -> int | None:
+    opcodes = {
+        ADM_IA:     2,
+        ADM_ZP:     2,
+        ADM_ZPIY:   2,
+        ADM_A:      3,
+        ADM_AIY:    3,
+    }
+
+    return opcodes.get(opcode)

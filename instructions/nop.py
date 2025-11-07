@@ -19,3 +19,12 @@ def execute_adm(adm: str, proc = None, operand: int = None) -> None:
 
 def execute_opcode() -> None:
     pass
+
+def get_opcode_bytes(opcode: int) -> int | None:
+    opcodes = {
+        ADM_I: 1,
+    }
+
+    if opcode in ADM_I:
+        return opcodes[ADM_I]
+    return None

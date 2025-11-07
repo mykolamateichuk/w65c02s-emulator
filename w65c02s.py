@@ -1,6 +1,11 @@
+import argparse
+
+import instructions as instr
+from cli import w65c02s_interface
+
 # W65C02S Microprocessor
 class W65C02S:
-    def __init__(self) -> None:
+    def __init__(self, rom: bytes = None) -> None:
         self.A = 0x00  # Accumulator A
         self.Y = 0x00  # Index register Y
         self.X = 0x00  # Index register X
@@ -98,6 +103,8 @@ class W65C02S:
             else:
                 self.OPCODES[opcodes] = instruction
 
+        self.ROM = rom
+
     @staticmethod
     def unsigned_byte(val: hex) -> hex:
         return val & ((1 << 8) - 1)  # Convert to 2's complement and wrap-around if needed
@@ -155,3 +162,38 @@ class W65C02S:
                 self.P &= ~self.P_FLAGS["OVERFLOW"]
             elif flag == "!N":
                 self.P &= ~self.P_FLAGS["NEGATIVE"]
+
+    def execute_from_rom(self) -> None:
+        while True:
+            if self.PC == len(self.ROM) - 1:
+                return
+
+            opcode = self.ROM[self.PC]
+            if opcode == 0x00:
+                return
+            print(f"{self.OPCODES.get(opcode)}", end=" ")
+
+            num_bytes = getattr(instr, self.OPCODES[opcode].lower()).get_opcode_bytes(opcode)
+
+            args = []
+            for i in range(num_bytes - 1):
+                args.append(self.ROM[self.PC + i + 1])
+                print(f"{self.ROM[self.PC + i + 1]:02X}", end=" ")
+            print()
+
+            getattr(instr, self.OPCODES[opcode].lower()).execute_opcode(self, opcode, *args)
+
+            self.PC += num_bytes
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("W65C02S Emulator")
+    parser.add_argument("--rom", dest="rom", type=str)
+    _args = parser.parse_args()
+
+    with open(_args.rom, "rb") as _rom_file:
+        _rom = _rom_file.read()
+
+    _proc = W65C02S(_rom)
+    _proc.execute_from_rom()
+
+    w65c02s_interface(_proc)

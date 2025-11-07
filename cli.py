@@ -1,5 +1,3 @@
-from w65c02s import W65C02S
-
 from addr_modes.handler import handle_adm
 import instructions as instr
 
@@ -31,7 +29,7 @@ def draw_registers(a: int, x: int, y: int) -> None:
     print("================")
 
 
-def print_memory(proc: W65C02S, addr1: int, addr2: int) -> None:
+def print_memory(proc: "W65C02S", addr1: int, addr2: int) -> None:
     num_rows = (addr2 - addr1) // 16
 
     if num_rows == 0:
@@ -69,7 +67,7 @@ def print_memory(proc: W65C02S, addr1: int, addr2: int) -> None:
             print(f"{row_start_addr:04X}-{addr2:04X}: {values} {spaces}")
 
 
-def w65c02s_interface(proc: W65C02S) -> None:
+def w65c02s_interface(proc: "W65C02S") -> None:
     running = True
     while running:
         tokens = input("> ").split(maxsplit=1)
@@ -299,9 +297,3 @@ def w65c02s_interface(proc: W65C02S) -> None:
             for arg in args:
                 if arg.upper() in allowed_fields.keys():
                     proc.__setattr__(arg.upper(), allowed_fields[arg.upper()])
-
-
-if __name__ == "__main__":
-    _proc = W65C02S()
-
-    w65c02s_interface(_proc)
