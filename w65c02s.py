@@ -188,6 +188,7 @@ class W65C02S:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("W65C02S Emulator")
     parser.add_argument("--rom", dest="rom", type=str)
+    parser.add_argument("--labels", dest="labels", type=str)
     _args = parser.parse_args()
 
     with open(_args.rom, "rb") as _rom_file:
