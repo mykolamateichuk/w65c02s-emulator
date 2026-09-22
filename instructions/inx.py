@@ -14,8 +14,9 @@ def execute_adm(adm: str, proc = None, operand: int = None) -> None:
     if adm == "I":
         i(proc)
 
-def execute_opcode() -> None:
-    pass
+def execute_opcode(proc, opcode: int, *args) -> None:
+    if opcode == ADM_I:
+        i(proc)
 
 def get_opcode_bytes(opcode: int) -> int | None:
     opcodes = {

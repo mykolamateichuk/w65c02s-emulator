@@ -1,7 +1,6 @@
 import re
 import argparse
 
-from w65c02s import W65C02S
 from addr_modes.handler import handle_adm
 import instructions as instr
 
@@ -89,7 +88,7 @@ def asm_to_binary(lines: list, bin_file: str) -> None:
         opcode = getattr(getattr(instr, instruction.lower()), f"ADM_{adm}")
 
         bin_program.append(opcode.to_bytes(1, "big"))
-        if operand:
+        if operand is not None:
             if operand > 255:
                 bin_program.append(operand.to_bytes(2, "little"))
             else:
@@ -106,8 +105,6 @@ if __name__ == "__main__":
 
     _args = parser.parse_args()
 
-    _proc = W65C02S()
-
     with open(_args.asm_file, "r") as file:
         _lines, _labels = preprocess(file.readlines())
-        asm_to_binary(_proc, _lines, _args.rom_file)
+        asm_to_binary(_lines, _args.rom_file)

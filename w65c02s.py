@@ -168,7 +168,7 @@ class W65C02S:
 
     def execute_from_rom(self) -> None:
         while True:
-            if self.PC == len(self.ROM) - 1:
+            if self.PC >= len(self.ROM):
                 return
 
             opcode = self.ROM[self.PC]

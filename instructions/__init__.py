@@ -49,6 +49,8 @@ from instructions.lsr import *
 from instructions.rol import *
 from instructions.ror import *
 
+from instructions.bra import *
+
 
 __all__ = [
     "nop",
@@ -58,4 +60,5 @@ __all__ = [
     "lda", "ldx", "ldy", "sta", "stx", "sty",
     "inc", "dec", "adc", "sbc", "and_", "ora", "eor", "cmp", "cpx", "cpy",
     "asl", "lsr", "rol", "ror", 
+    "bra",
 ]

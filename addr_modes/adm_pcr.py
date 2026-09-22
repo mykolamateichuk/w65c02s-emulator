@@ -11,7 +11,7 @@ PATTERN = re.compile(
 
 def handle_instruction(instruction: str, *operands) -> tuple[bool, int | None]:
     branch_instructions = (
-        "BPL", "BMI", "BVC", "BVS", "BCC", "BCS", "BNE", "BEQ"
+        "BRA", "BPL", "BMI", "BVC", "BVS", "BCC", "BCS", "BNE", "BEQ"
     )
 
     if len(operands) == 1 and re.match(PATTERN, operands[0]) and instruction.upper() in branch_instructions:
