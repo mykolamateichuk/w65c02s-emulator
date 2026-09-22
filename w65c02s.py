@@ -93,6 +93,9 @@ class W65C02S:
             "ROL": (0x2A, 0x26, 0x36, 0x2E, 0x3E),
             "ROR": (0x6A, 0x66, 0x76, 0x6E, 0x7E),
 
+            # Branch instructions
+            "BRA": 0x80,  # 65c02 instruction
+
         }
 
         self.OPCODES = {}
