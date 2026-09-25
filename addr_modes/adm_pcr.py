@@ -10,11 +10,7 @@ PATTERN = re.compile(
 
 
 def handle_instruction(instruction: str, *operands) -> tuple[bool, int | None]:
-    branch_instructions = (
-        "BRA", "BPL", "BMI", "BVC", "BVS", "BCC", "BCS", "BNE", "BEQ"
-    )
-
-    if len(operands) == 1 and re.match(PATTERN, operands[0]) and instruction.upper() in branch_instructions:
+    if len(operands) == 1 and re.match(PATTERN, operands[0]):
         try:
             offset = parse_number(operands[0])
         except ValueError:

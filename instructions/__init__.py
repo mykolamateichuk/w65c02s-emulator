@@ -1,64 +1,30 @@
-import importlib
+"""One function per mnemonic, grouped by family.
 
-from instructions.nop import *
+Every handler has the signature `fn(cpu, loc)`, where `loc` is what the
+addressing mode resolved to (see modes.py). Mnemonics missing from HANDLERS
+are in the opcode table but not implemented yet.
+"""
+from instructions import alu, branch, flags, load_store, shift, stack, system, transfer
 
-from instructions.clc import *
-from instructions.sec import *
-from instructions.cli import *
-from instructions.sei import *
-from instructions.clv import *
-from instructions.cld import *
-from instructions.sed import *
+HANDLERS = {
+    "NOP": system.nop,
 
-from instructions.txa import *
-from instructions.tax import *
-from instructions.tya import *
-from instructions.tay import *
-from instructions.inx import *
-from instructions.iny import *
-from instructions.dex import *
-from instructions.dey import *
+    "CLC": flags.clc, "SEC": flags.sec, "CLI": flags.cli, "SEI": flags.sei,
+    "CLV": flags.clv, "CLD": flags.cld, "SED": flags.sed,
 
-from instructions.txs import *
-from instructions.tsx import *
-from instructions.pha import *
-from instructions.pla import *
-from instructions.php import *
-from instructions.plp import *
+    "TAX": transfer.tax, "TXA": transfer.txa, "TAY": transfer.tay, "TYA": transfer.tya,
+    "TSX": transfer.tsx, "TXS": transfer.txs,
 
-from instructions.lda import *
-from instructions.ldx import *
-from instructions.ldy import *
-from instructions.sta import *
-from instructions.stx import *
-from instructions.sty import *
+    "PHA": stack.pha, "PLA": stack.pla, "PHP": stack.php, "PLP": stack.plp,
 
-from instructions.inc import *
-from instructions.dec import *
-from instructions.adc import *
-from instructions.sbc import *
-and_ = importlib.import_module("instructions.and")  # Python 'and' keyword ruined the fun...
-from instructions.ora import *
-from instructions.eor import *
-from instructions.cmp import *
-from instructions.cpx import *
-from instructions.cpy import *
+    "LDA": load_store.lda, "LDX": load_store.ldx, "LDY": load_store.ldy,
+    "STA": load_store.sta, "STX": load_store.stx, "STY": load_store.sty,
 
-from instructions.asl import *
-from instructions.lsr import *
-from instructions.rol import *
-from instructions.ror import *
+    "ADC": alu.adc, "SBC": alu.sbc, "AND": alu.and_, "ORA": alu.ora, "EOR": alu.eor,
+    "CMP": alu.cmp, "CPX": alu.cpx, "CPY": alu.cpy,
+    "INC": alu.inc, "DEC": alu.dec, "INX": alu.inx, "INY": alu.iny, "DEX": alu.dex, "DEY": alu.dey,
 
-from instructions.bra import *
+    "ASL": shift.asl, "LSR": shift.lsr, "ROL": shift.rol, "ROR": shift.ror,
 
-
-__all__ = [
-    "nop",
-    "clc", "sec", "cli", "sei", "clv", "cld", "sed",
-    "txa", "tax", "tya", "tay", "inx", "iny", "dex", "dey",
-    "txs", "tsx", "pha", "plp", "php", "plp",
-    "lda", "ldx", "ldy", "sta", "stx", "sty",
-    "inc", "dec", "adc", "sbc", "and_", "ora", "eor", "cmp", "cpx", "cpy",
-    "asl", "lsr", "rol", "ror", 
-    "bra",
-]
+    "BRA": branch.bra,
+}

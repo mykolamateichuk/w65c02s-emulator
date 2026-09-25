@@ -11,7 +11,6 @@ from pathlib import Path
 
 import pytest
 
-import instructions
 from cli import print_memory
 from asm_to_bin import preprocess
 from w65c02s import W65C02S
@@ -51,7 +50,7 @@ def test_B01_rom_runner_executes_implied_instructions():
 @bug("B02", fixed_in=1)
 def test_B02_bra_runs_everywhere():
     assert run_rom([0x80, 0x02, 0xA9, 0x01, 0xA9, 0x02]).A == 0x02  # skips LDA #$01
-    assert run_shell(["BRA $02"]).PC == 0x02
+    assert run_shell(["BRA $02"]).PC == 0x04  # relative to the next instruction
     assert assemble(["BRA $02"]) == bytes([0x80, 0x02])
     assert assemble(["BRA $FE"]) == bytes([0x80, 0xFE])
 
@@ -77,7 +76,7 @@ def test_B04_zero_operand_is_kept():
 
 # --- high -------------------------------------------------------------------
 
-@bug("B05", reason="CMP/CPX/CPY compare signed; N taken from the register")
+@bug("B05", fixed_in=2)
 def test_B05_compares_are_unsigned():
     cpu = run_shell(["CMP #$01"], A=0x80)
     assert (flag(cpu, "C"), flag(cpu, "N")) == (1, 0)
@@ -87,19 +86,19 @@ def test_B05_compares_are_unsigned():
     assert flag(run_shell(["CPY #$01"], Y=0x80), "C") == 1
 
 
-@bug("B06", reason="ADC overflow uses unmasked result and skips zero operands")
+@bug("B06", fixed_in=2)
 def test_B06_adc_overflow():
     assert flag(run_shell(["ADC #$FF"], A=0xFF, flags={"C": 0}), "V") == 0
     assert flag(run_shell(["ADC #$7F"], A=0x00, flags={"C": 1}), "V") == 1
 
 
-@bug("B07", reason="SBC overflow uses the addition rule")
+@bug("B07", fixed_in=2)
 def test_B07_sbc_overflow():
     assert flag(run_shell(["SBC #$01"], A=0x80, flags={"C": 1}), "V") == 1
     assert flag(run_shell(["SBC #$FF"], A=0x7F, flags={"C": 1}), "V") == 1
 
 
-@bug("B08", reason="operand width is taken from the value, not the mode")
+@bug("B08", fixed_in=2)
 def test_B08_absolute_below_0100_is_two_bytes():
     assert assemble(["STA $0012"]) == bytes([0x8D, 0x12, 0x00])
 
@@ -129,7 +128,7 @@ def test_B11_rom_runner_loop_bounds():
     assert cpu.A == 0x02
 
 
-@bug("B12", reason="unknown opcodes raise a bare KeyError")
+@bug("B12", fixed_in=2)
 def test_B12_unknown_opcode_error_is_descriptive():
     with pytest.raises(Exception) as exc:
         W65C02S(bytes([0x4C, 0x00, 0x00, 0x00])).execute_from_rom()  # JMP
@@ -137,7 +136,7 @@ def test_B12_unknown_opcode_error_is_descriptive():
     assert "4C" in str(exc.value).upper()
 
 
-@bug("B13", reason="$EA missing, WAI/STP decoded as NOP, undefined NOPs all 1 byte")
+@bug("B13", reason="STP doesn't halt yet (NOP decoding was fixed in step 2)")
 def test_B13_nop_decoding_matches_datasheet():
     assert run_rom([0xEA, 0xA9, 0x05]).A == 0x05              # real NOP
     assert run_rom([0x5C, 0x34, 0x12, 0xA9, 0x05]).A == 0x05  # 3-byte undefined NOP
@@ -152,22 +151,21 @@ def test_B14_decimal_mode_adc():
     assert run_shell(["ADC #$01"], A=0x09, flags={"D": 1, "C": 0}).A == 0x10
 
 
-@bug("B15", reason="zero-page pointer high byte is read from $0100")
+@bug("B15", fixed_in=2)
 def test_B15_zero_page_pointer_wraps():
     mem = {0xFF: 0x34, 0x00: 0x12, 0x100: 0x99, 0x1234: 0x42, 0x9934: 0x77}
     assert run_shell(["LDA ($FF),Y"], Y=0, mem=mem).A == 0x42
 
 
-@bug("B16", reason="(zp) mode is parsed then silently ignored")
+@bug("B16", fixed_in=2)
 def test_B16_zero_page_indirect_mode():
     mem = {0x12: 0x34, 0x13: 0x12, 0x1234: 0x99}
     assert run_shell(["LDA ($12)"], mem=mem).A == 0x99
 
 
-@bug("B17", reason="PLP stores the raw byte; PHP doesn't set B and bit 5")
+@bug("B17", reason="PHP doesn't push B set (PLP bit 5 was fixed in step 2)")
 def test_B17_php_plp_status_bits():
-    cpu = make_cpu(S=0xFC, mem={0x01FD: 0x00})
-    instructions.plp.i(cpu)
+    cpu = run_rom([0x28], S=0xFC, mem={0x01FD: 0x00})  # PLP
     assert cpu.P & 0x20 and not cpu.P & 0x10
     cpu = run_rom([0x08], P=0x24)  # PHP
     assert cpu.MEMORY[0x01FD] == 0x34
@@ -193,7 +191,7 @@ def test_B19_shell_survives_empty_line_and_eof(monkeypatch):
     w65c02s_interface(make_cpu())
 
 
-@bug("B20", reason="raw opcode input is passed as strings without the opcode")
+@bug("B20", fixed_in=2)
 def test_B20_shell_accepts_raw_opcodes():
     assert run_shell(["A9 05"]).A == 0x05
 
@@ -206,8 +204,7 @@ def test_B21_memory_dump_stops_at_range_end(capsys):
     assert starts == ["0003", "0010", "0020"]
 
 
-@bug("B22", reason="!reg values aren't masked; __all__ lists plp twice and omits pla")
+@bug("B22", reason="!reg values aren't masked")
 def test_B22_loose_ends():
+    # The instructions.__all__ and "_" suffix items went away with the step 2 opcode table
     assert run_shell(["!reg A=1FF"]).A == 0xFF
-    assert "pla" in instructions.__all__
-    assert len(instructions.__all__) == len(set(instructions.__all__))

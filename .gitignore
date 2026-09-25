@@ -1,6 +1,13 @@
+# IDE and Python
 .idea/
 __pycache__/
+.pytest_cache/
 /venv
+
+# Scratch programs and notebooks (test.s, test.bin, test_restruct.ipynb)
 *.ipynb
 *.s
 *.bin
+
+# Local helper scripts, e.g. the audit dashboard probe
+/scripts/

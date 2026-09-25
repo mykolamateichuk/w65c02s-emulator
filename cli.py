@@ -1,5 +1,9 @@
-from addr_modes.handler import handle_adm
-import instructions as instr
+import re
+
+from asm_to_bin import encode
+from opcodes import MNEMONICS
+
+RAW_BYTES = re.compile(r"\s*[0-9a-fA-F]{2}(\s+[0-9a-fA-F]{2})*\s*")  # e.g. "A9 05"
 
 def draw_flags(flags: int) -> None:
     c = int(bool(flags & 0b00000001))
@@ -67,10 +71,19 @@ def print_memory(proc: "W65C02S", addr1: int, addr2: int) -> None:
             print(f"{row_start_addr:04X}-{addr2:04X}: {values} {spaces}")
 
 
+def run_instruction(proc: "W65C02S", code: bytes) -> None:
+    """Execute one instruction given as machine code. PC only changes if the instruction jumps."""
+    start = proc.PC
+    proc.execute(code[0], code[1:])
+    if proc.PC == (start + len(code)) & 0xFFFF:
+        proc.PC = start
+
+
 def w65c02s_interface(proc: "W65C02S") -> None:
     running = True
     while running:
-        tokens = input("> ").split(maxsplit=1)
+        line = input("> ")
+        tokens = line.split(maxsplit=1)
 
         instruction = tokens[0]
         args = []
@@ -86,47 +99,13 @@ def w65c02s_interface(proc: "W65C02S") -> None:
             if not isinstance(args, list):
                 args = [args]
 
-        is_opcode = False
-        try:
-            opcode = int(instruction, 16)
-            if opcode <= 0xFF:
-                instruction = opcode
-
-            is_opcode = True
-        except ValueError:
-            if instruction.upper() in proc.INSTRUCTION_SET.keys():
-                is_opcode = True
-
-        if is_opcode:
-            is_indirect = False
-            if len(args) != 0:
-                is_indirect = "(" in args[0]
-
-                if "(" in args[0]:
-                    args[0] = args[0].split("(")[1]
-                if ")" in args[0]:
-                    args[0] = args[0].split(")")[0]
-                if len(args) == 2:
-                    if ")" in args[1]:
-                        args[1] = args[1].split(")")[0]
-
-                args[0] = args[0].strip()
-                if len(args) == 2:
-                    args[1] = args[1].strip()
-
-            if isinstance(instruction, int):
-                if instruction in proc.OPCODES:
-                    # TODO: implement execute_opcode for all available instructions
-                    getattr(instr, proc.OPCODES[instruction].lower()).execute_opcode(proc, *args)
-                continue
-
-            if "_" in instruction:
-                instruction = instruction[:len(instruction) - 2]
-
-            adm, operand = handle_adm(is_indirect, instruction, *args)
-            getattr(instr, instruction.lower()).execute_adm(
-                adm=adm, proc=proc, operand=operand
-            )
+        if RAW_BYTES.fullmatch(line) or instruction.upper() in MNEMONICS:
+            try:
+                code = bytes.fromhex(line) if RAW_BYTES.fullmatch(line) else encode(line)
+                run_instruction(proc, code)
+            except (ValueError, NotImplementedError) as err:
+                print(f"error: {err}")
+            continue
 
         if instruction == "!exit":
             running = False
@@ -136,62 +115,10 @@ def w65c02s_interface(proc: "W65C02S") -> None:
                 draw_flags(proc.P)
                 continue
 
-            flags = {
-                "C": None,
-                "Z": None,
-                "I": None,
-                "D": None,
-                "B": None,
-                "V": None,
-                "N": None
-            }
-
             for arg in args:
-                if "C" in arg or "c" in arg:
-                    if "!" in arg:
-                        flags["C"] = False
-                    else:
-                        flags["C"] = True
-                if "Z" in arg or "z" in arg:
-                    if "!" in arg:
-                        flags["Z"] = False
-                    else:
-                        flags["Z"] = True
-                if "I" in arg or "i" in arg:
-                    if "!" in arg:
-                        flags["I"] = False
-                    else:
-                        flags["I"] = True
-                if "D" in arg or "d" in arg:
-                    if "!" in arg:
-                        flags["D"] = False
-                    else:
-                        flags["D"] = True
-                if "B" in arg or "b" in arg:
-                    if "!" in arg:
-                        flags["B"] = False
-                    else:
-                        flags["B"] = True
-                if "V" in arg or "v" in arg:
-                    if "!" in arg:
-                        flags["V"] = False
-                    else:
-                        flags["V"] = True
-                if "N" in arg or "n" in arg:
-                    if "!" in arg:
-                        flags["N"] = False
-                    else:
-                        flags["N"] = True
-
-            proc.set_flags(
-                "C" if flags["C"] else "!C" if flags["C"] is False else None,
-                "Z" if flags["Z"] else "!Z" if flags["Z"] is False else None,
-                "I" if flags["I"] else "!I" if flags["I"] is False else None,
-                "D" if flags["D"] else "!D" if flags["D"] is False else None,
-                "B" if flags["B"] else "!B" if flags["B"] is False else None,
-                "V" if flags["V"] else "!V" if flags["V"] is False else None,
-                "N" if flags["N"] else "!N" if flags["N"] is False else None,
-            )
+                for name in "CZIDBVN":
+                    if name in arg.upper():
+                        setattr(proc, name, "!" not in arg)
 
         elif instruction == "!reg":
             if len(args) == 0:
