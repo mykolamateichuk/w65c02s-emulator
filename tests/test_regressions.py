@@ -208,3 +208,13 @@ def test_B21_memory_dump_stops_at_range_end(capsys):
 def test_B22_loose_ends():
     # The instructions.__all__ and "_" suffix items went away with the step 2 opcode table
     assert run_shell(["!reg A=1FF"]).A == 0xFF
+
+
+# --- found after the audit ----------------------------------------------------
+
+@bug("B23", fixed_in=2)
+def test_B23_ror_memory_sets_nz_from_result():
+    # Found by the step 2 probe: ROR on memory took N and Z from A
+    cpu = run_rom([0x66, 0x12], A=0x00, flags={"C": 1}, mem={0x12: 0x02})  # ROR $12
+    assert cpu.MEMORY[0x12] == 0x81
+    assert (flag(cpu, "N"), flag(cpu, "Z")) == (1, 0)
