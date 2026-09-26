@@ -25,12 +25,12 @@ class Immediate:
 
 
 def _word(cpu, addr: int) -> int:
-    return cpu.MEMORY[addr] | cpu.MEMORY[(addr + 1) & 0xFFFF] << 8
+    return cpu.mem_read(addr) | cpu.mem_read((addr + 1) & 0xFFFF) << 8
 
 
 def _zp_word(cpu, zp_addr: int) -> int:
     # A pointer in zero page wraps within zero page: ($FF) reads $FF and $00
-    return cpu.MEMORY[zp_addr & 0xFF] | cpu.MEMORY[(zp_addr + 1) & 0xFF] << 8
+    return cpu.mem_read(zp_addr & 0xFF) | cpu.mem_read((zp_addr + 1) & 0xFF) << 8
 
 
 def a(cpu, operand: int) -> int:        # a

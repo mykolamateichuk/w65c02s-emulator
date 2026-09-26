@@ -136,7 +136,7 @@ def test_B12_unknown_opcode_error_is_descriptive():
     assert "4C" in str(exc.value).upper()
 
 
-@bug("B13", reason="STP doesn't halt yet (NOP decoding was fixed in step 2)")
+@bug("B13", fixed_in=3)
 def test_B13_nop_decoding_matches_datasheet():
     assert run_rom([0xEA, 0xA9, 0x05]).A == 0x05              # real NOP
     assert run_rom([0x5C, 0x34, 0x12, 0xA9, 0x05]).A == 0x05  # 3-byte undefined NOP

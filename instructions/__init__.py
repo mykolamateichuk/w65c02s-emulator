@@ -7,7 +7,7 @@ are in the opcode table but not implemented yet.
 from instructions import alu, branch, flags, load_store, shift, stack, system, transfer
 
 HANDLERS = {
-    "NOP": system.nop,
+    "NOP": system.nop, "STP": system.stp,
 
     "CLC": flags.clc, "SEC": flags.sec, "CLI": flags.cli, "SEI": flags.sei,
     "CLV": flags.clv, "CLD": flags.cld, "SED": flags.sed,

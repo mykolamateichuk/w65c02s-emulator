@@ -1,4 +1,4 @@
-"""End-to-end: assemble with the CLI, run the binary with the ROM runner, inspect in the shell."""
+"""End-to-end through the real CLIs: assemble, run the binary with the ROM runner, inspect in the shell."""
 import subprocess
 import sys
 from pathlib import Path
@@ -32,6 +32,22 @@ def test_assemble_run_and_inspect(tmp_path):
                          input="!reg\n!mem 0234\n!stk /FD\n!exit\n",
                          cwd=ROOT, capture_output=True, text=True)
     assert run.returncode == 0, run.stderr
+    assert "reset: PC = $8000" in run.stdout  # the ROM is mapped at $8000 and boots from the reset vector
+    assert "8006  BRA 02" in run.stdout
+    assert "stopped: BRK at $800F" in run.stdout  # the $00 just past the 15-byte image
     assert "| 06 | 06 | 00 |" in run.stdout  # A X Y
     assert "0234: 06" in run.stdout
     assert "01FD: 06" in run.stdout
+
+    moved = subprocess.run([sys.executable, "w65c02s.py", "--rom", str(rom), "--org", "0200", "--trap", "020A"],
+                           input="!exit\n", cwd=ROOT, capture_output=True, text=True)
+    assert moved.returncode == 0, moved.stderr
+    assert "reset: PC = $0200" in moved.stdout
+    assert "stopped: trap at $020A" in moved.stdout
+
+
+def test_shell_starts_without_a_rom():
+    run = subprocess.run([sys.executable, "w65c02s.py"], input="LDA #$42\n!reg\n!exit\n",
+                         cwd=ROOT, capture_output=True, text=True)
+    assert run.returncode == 0, run.stderr
+    assert "| 42 | 00 | 00 |" in run.stdout
